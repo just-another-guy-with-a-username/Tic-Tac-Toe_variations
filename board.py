@@ -28,6 +28,14 @@ class Board():
         y1 = self._y1 + j * self._cell_size
         x2 = x1 + self._cell_size
         y2 = y1 + self._cell_size
+        if i == 0:
+            self._cells[i][j].has_left_wall = False
+        if i == self._dimensions - 1:
+            self._cells[i][j].has_right_wall = False
+        if j == 0:
+            self._cells[i][j].has_top_wall = False
+        if j == self._dimensions - 1:
+            self._cells[i][j].has_bottom_wall = False
         self._cells[i][j].draw(x1, y1, x2, y2)
         self._animate()
 
