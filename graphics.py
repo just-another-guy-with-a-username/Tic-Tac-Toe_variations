@@ -1,14 +1,16 @@
-from tkinter import Tk, BOTH, Canvas
+import tkinter as tk
 
 
 class Window:
     def __init__(self, width, height):
-        self.__root = Tk()
-        self.__root.title("Tic-Oat-Two")
+        self.__root = tk.Tk()
+        self.__root.title("Tick-oaT-Two")
         self.__root.protocol("WM_DELETE_WINDOW", self.close)
-        self.__canvas = Canvas(self.__root, bg="black", height=height, width=width)
-        self.__canvas.pack(fill=BOTH, expand=1)
+        self.__canvas = tk.Canvas(self.__root, bg="black", height=height, width=width)
+        self.__canvas.pack(fill=tk.BOTH, expand=1)
         self.__running = False
+        self._width = width
+        self._height = height
 
     def redraw(self):
         self.__root.update_idletasks()
@@ -25,6 +27,9 @@ class Window:
 
     def close(self):
         self.__running = False
+
+    def get_root(self):
+        return self.__root
 
 
 class Point:
