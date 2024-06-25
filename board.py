@@ -1,6 +1,7 @@
 import tkinter as tk
 from cell import Cell
 from graphics import Line, Point
+import random
 
 
 class Board():
@@ -19,7 +20,6 @@ class Board():
         self.replay = None
         self.menu = None
         self.win_lines = []
-        the = tk.StringVar()
         self._vertical_score_teller = None
         self._horizontal_score_teller = None
         self.display_scores()
@@ -73,53 +73,60 @@ class Board():
         self._win.redraw()
 
     def move(self, i, j):
-            cell = self._cells[i][j]
-            if self._vertical_turn:
-                if cell._allowed_vertical and not cell._vertical:
-                    self._cells[i][j].draw_vertical()
-                    self._cells[i][j]._vertical = True
-                    self._vertical_turn = False
-                    for col in self._cells:
-                        for space in col:
-                            space._allowed_horizontal = True
-                    self._cells[i][j]._allowed_horizontal = False
-                    win = self.check_win()
-                    if win != 0:
-                        if win == 1:
-                            print("Vertical wins!")
-                        else:
-                            print(f"Vertical wins with {win} lines!")
-                        for col in self._buttons:
-                            for button in col:
-                                button["state"] = "disabled"
-                        self._vertical_score += 1
-                        self.display_scores()
-                        self.end_buttons()
+        cell = self._cells[i][j]
+        if self._vertical_turn:
+            self.vertical_move(cell, i, j)
+        else:
+            self.horizontal_move(cell, i, j)
+
+    def vertical_move(self, cell, i, j):
+        if cell._allowed_vertical and not cell._vertical:
+            self._cells[i][j].draw_vertical()
+            self._cells[i][j]._vertical = True
+            self._vertical_turn = False
+            for col in self._cells:
+                for space in col:
+                    space._allowed_horizontal = True
+            self._cells[i][j]._allowed_horizontal = False
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("Vertical wins!")
                 else:
-                    print("Illegal Move Found!")
-            else:
-                if cell._allowed_horizontal and not cell._horizontal:
-                    self._cells[i][j].draw_horizontal()
-                    self._cells[i][j]._horizontal = True
-                    self._vertical_turn = True
-                    for col in self._cells:
-                        for space in col:
-                            space._allowed_vertical = True
-                    self._cells[i][j]._allowed_vertical = False
-                    win = self.check_win()
-                    if win != 0:
-                        if win == 1:
-                            print("Horizontal wins!")
-                        else:
-                            print(f"Horizontal wins with {win} lines!")
-                        for col in self._buttons:
-                            for button in col:
-                                button["state"] = "disabled"
-                        self._horizontal_score += 1
-                        self.display_scores()
-                        self.end_buttons()
+                    print(f"Vertical wins with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._vertical_score += 1
+                self.display_scores()
+                self.end_buttons()
+                return True
+        else:
+            print("Illegal Move Found!")
+
+    def horizontal_move(self, cell, i, j):
+        if cell._allowed_horizontal and not cell._horizontal:
+            self._cells[i][j].draw_horizontal()
+            self._cells[i][j]._horizontal = True
+            self._vertical_turn = True
+            for col in self._cells:
+                for space in col:
+                    space._allowed_vertical = True
+            self._cells[i][j]._allowed_vertical = False
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("Horizontal wins!")
                 else:
-                    print("Illegal Move Found!")
+                    print(f"Horizontal wins with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._horizontal_score += 1
+                self.display_scores()
+                self.end_buttons()
+        else:
+            print("Illegal Move Found!")
 
     def check_win(self):
          win_count = 0
@@ -161,13 +168,13 @@ class Board():
 
     def end_buttons(self):
         self.close = tk.Button(bg="#00C000", activebackground="#009000", borderwidth=0, text="Close",
-                          anchor="center", command=self.end_program)
+                               anchor="center", command=self.end_program)
         self.close.place(width=self._win._width/3, height=self._win._height/30,
-                    x=self._win._width/3, y=(self._win._height/2)-(self._win._height/15))
+                         x=self._win._width/3, y=(self._win._height/2)-(self._win._height/15))
         self.replay = tk.Button(bg="#00C000", activebackground="#009000", borderwidth=0, text="Play Again",
-                          anchor="center", command=self.reset_board)
+                                anchor="center", command=self.reset_board)
         self.replay.place(width=self._win._width/3, height=self._win._height/30,
-                    x=self._win._width/3, y=(self._win._height/2)-(self._win._height/45))
+                          x=self._win._width/3, y=(self._win._height/2)-(self._win._height/45))
 
     def end_program(self):
         self._win.get_root().destroy()
@@ -196,3 +203,164 @@ class Board():
                                                  textvariable=horizontal_score)
         self._vertical_score_teller.place(x=2, y=2)
         self._horizontal_score_teller.place(x=2, y=22)
+
+class AI_Board(Board):
+    def __init__(self, cell_size, x1, y1, win=None):
+        super().__init__(cell_size, x1, y1, win)
+        self.d_board = [[[False, False], [True, True], [False, False]],
+                        [[True, True], [False, False], [True, True]],
+                        [[False, False], [True, True], [False, False]]]
+
+    def reset_board(self):
+        super().reset_board()
+        self.d_board = [[[False, False], [True, True], [False, False]],
+                        [[True, True], [False, False], [True, True]],
+                        [[False, False], [True, True], [False, False]]]
+
+    def move(self, i, j):
+        cell = self._cells[i][j]
+        if self._vertical_turn:
+            move = self.vertical_move(cell, i, j)
+        if move!=True:
+            AI_move = self.best_move()
+            if AI_move != None and not self._vertical_turn:
+                self.horizontal_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
+            self._vertical_turn = True
+
+    def best_move(self):
+        win_lines = []
+        for i in range(0, self._dimensions):
+            if (self._cells[i][0]._vertical==True and
+                self._cells[i][1]._vertical==True and
+                self._cells[i][2]._vertical==True):
+                win_lines.append([[i, 0], [i, 1], [i, 2]])
+        for i in range(0, self._dimensions):
+            if (self._cells[0][i]._vertical==True and
+                self._cells[1][i]._vertical==True and
+                self._cells[2][i]._vertical==True):
+                win_lines.append([[0, i], [1, i], [2, i]])
+        if (self._cells[0][0]._vertical==True and
+            self._cells[1][1]._vertical==True and
+            self._cells[2][2]._vertical==True):
+            win_lines.append([[0, 0], [1, 1], [2, 2]])
+        if (self._cells[0][2]._vertical==True and
+            self._cells[1][1]._vertical==True and
+            self._cells[2][0]._vertical==True):
+            win_lines.append([[0, 2], [1, 1], [2, 0]])
+        if win_lines != []:
+            for line in win_lines:
+                for cell in line:
+                    if not self._cells[cell[0]][cell[1]]._horizontal and self._cells[cell[0]][cell[1]]._allowed_horizontal:
+                        return cell
+        c_board = []
+        for col in self._cells:
+            c_col = []
+            for cell in col:
+                c_col.append([cell._vertical, cell._horizontal])
+            c_board.append(c_col)
+        o_board = []
+        for col in self._cells:
+            o_col = []
+            for cell in col:
+                o_col.append(cell._vertical or cell._horizontal)
+            o_board.append(o_col)
+        if c_board[1][0]==[True, True] and c_board[0][1]==[True, True] and c_board[1][2]==[True, True] and c_board[2][1]==[True, True]:
+            if (c_board[0][0]==[True, True] and c_board[2][2]==[True, True]) or (c_board[0][2]==[True, True] and c_board[2][0]==[True, True]):
+                if c_board[1][1][1]==True or c_board[1][1][0]==True:
+                    if c_board[0][0][1]==False:
+                        if self._cells[0][0]._allowed_horizontal==True:
+                            return[0, 0]
+                    if c_board[2][0][1]==False:
+                        if self._cells[2][0]._allowed_horizontal==True:
+                            return[2, 0]
+                    if c_board[0][2][1]==False:
+                        if self._cells[0][2]._allowed_horizontal==True:
+                            return[0, 2]
+                    if c_board[2][2][1]==False:
+                        if self._cells[2][2]._allowed_horizontal==True:
+                            return[2, 2]
+                return [1, 1]
+        if c_board[0][0]==[True, False] and c_board[2][0]==[False, False] and c_board[0][2]==[False, False] and c_board[2][2]==[False, False]:
+            if self.d_board==[[[False, False], [True, True], [False, False]],
+                              [[True, True], [False, False], [True, True]],
+                              [[False, False], [True, True], [False, False]]]:
+                self.d_board[0][0] = [True, True]
+                self.d_board[2][2] = [True, True]
+            return [2, 2]
+        if c_board[0][0]==[False, False] and c_board[2][0]==[True, False] and c_board[0][2]==[False, False] and c_board[2][2]==[False, False]:
+            if self.d_board==[[[False, False], [True, True], [False, False]],
+                              [[True, True], [False, False], [True, True]],
+                              [[False, False], [True, True], [False, False]]]:
+                self.d_board[0][2] = [True, True]
+                self.d_board[2][0] = [True, True]
+            return [0, 2]
+        if c_board[0][0]==[False, False] and c_board[2][0]==[False, False] and c_board[0][2]==[True, False] and c_board[2][2]==[False, False]:
+            if self.d_board==[[[False, False], [True, True], [False, False]],
+                              [[True, True], [False, False], [True, True]],
+                              [[False, False], [True, True], [False, False]]]:
+                self.d_board[0][2] = [True, True]
+                self.d_board[2][0] = [True, True]
+            return [2, 0]
+        if c_board[0][0]==[False, False] and c_board[2][0]==[False, False] and c_board[0][2]==[False, False] and c_board[2][2]==[True, False]:
+            if self.d_board==[[[False, False], [True, True], [False, False]],
+                              [[True, True], [False, False], [True, True]],
+                              [[False, False], [True, True], [False, False]]]:
+                self.d_board[0][0] = [True, True]
+                self.d_board[2][2] = [True, True]
+            return [0, 0]
+        if c_board[0][1]==[True, False] and c_board[2][1]==[False, False]:
+            return [2, 1]
+        if c_board[2][1]==[True, False] and c_board[0][1]==[False, False]:
+            return [0, 1]
+        if c_board[1][0]==[True, False] and c_board[1][2]==[False, False]:
+            return [1, 2]
+        if c_board[1][2]==[True, False] and c_board[1][0]==[False, False]:
+            return [1, 0]
+        if c_board[0][0]==[True, True] and c_board[2][0]==[False, False] and c_board[0][2]==[False, False] and c_board[2][2]==[True, False]:
+            return [2, 2]
+        if c_board[0][0]==[False, False] and c_board[2][0]==[True, True] and c_board[0][2]==[True, False] and c_board[2][2]==[False, False]:
+            return [0, 2]
+        if c_board[0][0]==[False, False] and c_board[2][0]==[True, False] and c_board[0][2]==[True, True] and c_board[2][2]==[False, False]:
+            return [2, 0]
+        if c_board[0][0]==[True, False] and c_board[2][0]==[False, False] and c_board[0][2]==[False, False] and c_board[2][2]==[True, True]:
+            return [0, 0]
+        if c_board[0][1]==[True, True] and c_board[2][1]==[True, False]:
+            return [2, 1]
+        if c_board[2][1]==[True, True] and c_board[0][1]==[True, False]:
+            return [0, 1]
+        if c_board[1][0]==[True, True] and c_board[1][2]==[True, False]:
+            return [1, 2]
+        if c_board[1][2]==[True, True] and c_board[1][0]==[True, False]:
+            return [1, 0]
+        if self.d_board[0][0]==[True, True] and c_board[0][0]==[False, False]:
+            return [0, 0]
+        if self.d_board[1][0]==[True, True] and c_board[1][0]==[False, False]:
+            return [1, 0]
+        if self.d_board[2][0]==[True, True] and c_board[2][0]==[False, False]:
+            return [2, 0]
+        if self.d_board[0][1]==[True, True] and c_board[0][1]==[False, False]:
+            return [0, 1]
+        if self.d_board[2][1]==[True, True] and c_board[2][1]==[False, False]:
+            return [2, 1]
+        if self.d_board[0][2]==[True, True] and c_board[0][2]==[False, False]:
+            return [0, 2]
+        if self.d_board[1][2]==[True, True] and c_board[1][2]==[False, False]:
+            return [1, 2]
+        if self.d_board[2][2]==[True, True] and c_board[2][2]==[False, False]:
+            return [2, 2]
+        if self.d_board[0][0]==[True, True] and c_board[0][0]==[True, False]:
+            return [0, 0]
+        if self.d_board[1][0]==[True, True] and c_board[1][0]==[True, False]:
+            return [1, 0]
+        if self.d_board[2][0]==[True, True] and c_board[2][0]==[True, False]:
+            return [2, 0]
+        if self.d_board[0][1]==[True, True] and c_board[0][1]==[True, False]:
+            return [0, 1]
+        if self.d_board[2][1]==[True, True] and c_board[2][1]==[True, False]:
+            return [2, 1]
+        if self.d_board[0][2]==[True, True] and c_board[0][2]==[True, False]:
+            return [0, 2]
+        if self.d_board[1][2]==[True, True] and c_board[1][2]==[True, False]:
+            return [1, 2]
+        if self.d_board[2][2]==[True, True] and c_board[2][2]==[True, False]:
+            return [2, 2]
