@@ -2,6 +2,8 @@ import tkinter as tk
 from cell import Cell
 from graphics import Line, Point
 import random
+import time
+
 
 
 class Board():
@@ -222,6 +224,8 @@ class AI_Board(Board):
         if self._vertical_turn:
             move = self.vertical_move(cell, i, j)
         if move!=True:
+            self._win.redraw()
+            time.sleep(1)
             AI_move = self.best_move()
             if AI_move != None and not self._vertical_turn:
                 self.horizontal_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
@@ -258,12 +262,6 @@ class AI_Board(Board):
             for cell in col:
                 c_col.append([cell._vertical, cell._horizontal])
             c_board.append(c_col)
-        o_board = []
-        for col in self._cells:
-            o_col = []
-            for cell in col:
-                o_col.append(cell._vertical or cell._horizontal)
-            o_board.append(o_col)
         if c_board[1][0]==[True, True] and c_board[0][1]==[True, True] and c_board[1][2]==[True, True] and c_board[2][1]==[True, True]:
             if (c_board[0][0]==[True, True] and c_board[2][2]==[True, True]) or (c_board[0][2]==[True, True] and c_board[2][0]==[True, True]):
                 if c_board[1][1][1]==True or c_board[1][1][0]==True:
@@ -307,6 +305,11 @@ class AI_Board(Board):
                               [[False, False], [True, True], [False, False]]]:
                 self.d_board[0][0] = [True, True]
                 self.d_board[2][2] = [True, True]
+            return [0, 0]
+        if (c_board[0][0]==[False, False] and c_board[0][2]==[False, False] and c_board[1][1]==[True, False] and
+            c_board[2][0]==[False, False] and c_board[2][2]==[False, False]):
+            self.d_board[0][0] = [True, True]
+            self.d_board[2][2] = [True, True]
             return [0, 0]
         if c_board[0][1]==[True, False] and c_board[2][1]==[False, False]:
             return [2, 1]
