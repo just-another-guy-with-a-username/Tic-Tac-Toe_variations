@@ -102,9 +102,11 @@ class Board():
                 self._vertical_score += 1
                 self.display_scores()
                 self.end_buttons()
-                return True
+                return [True, True]
+            return [True, False]
         else:
             print("Illegal Move Found!")
+        return [False, False]
 
     def horizontal_move(self, cell, i, j):
         if cell._allowed_horizontal and not cell._horizontal:
@@ -198,6 +200,7 @@ class Board():
             for cell in col:
                 cell.reset()
                 cell.draw()
+        self._vertical_turn = True
 
     def main_menu(self):
         self.close.destroy()
@@ -216,12 +219,16 @@ class Board():
                 cell.disappear()
         window_length = self._win._width
         window_height = self._win._height
+        necesary2 = tk.StringVar()
+        necesary2.set('The Rules:\nlike regular tic-tac-toe, but with a twist. one player plays vertical lines, while the other plays horizontal lines. When two players play on the same space, a cross is formed. The player to finish a row of three crosses first is the winner. You can not play a line on the same square your opponent played on in their previous turn, as this makes player 2 unable to lose. Have fun!')
+        rules = tk.Label(self._win.get_root(), textvariable=necesary2, wraplength=190, bg="#00C000", bd=3, relief="raised")
+        rules.place(x=10, y=150, width=200, height=300)
         button1 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
                             anchor="center")
         button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
                             anchor="center")
-        button1['command'] = lambda button1=button1, button2=button2, win=self._win: make_board(button1, button2, win)
-        button2['command'] = lambda button1=button1, button2=button2, win=self._win: make_AI_board(button1, button2, win)
+        button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=self._win: make_board(button1, button2, rules, win)
+        button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=self._win: make_AI_board(button1, button2, rules, win)
         button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
         button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
 
@@ -234,8 +241,8 @@ class Board():
         horizontal_score.set(f"Horizontal wins: {self._horizontal_score}")
         self._horizontal_score_teller = tk.Label(height=1, width=100, bg="#00FF00", fg="black",
                                                  textvariable=horizontal_score)
-        self._vertical_score_teller.place(x=2, y=22)
-        self._horizontal_score_teller.place(x=2, y=42)
+        self._vertical_score_teller.place(x=0, y=20, height=20, width=self._win._width)
+        self._horizontal_score_teller.place(x=0, y=40, height=20, width=self._win._width)
 
 class AI_Board(Board):
     def __init__(self, cell_size, x1, y1, win=None):
@@ -254,13 +261,14 @@ class AI_Board(Board):
         cell = self._cells[i][j]
         if self._vertical_turn:
             move = self.vertical_move(cell, i, j)
-        if move!=True:
-            self._win.redraw()
-            time.sleep(1)
-            AI_move = self.best_move()
-            if AI_move != None and not self._vertical_turn:
-                self.horizontal_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
-            self._vertical_turn = True
+        if move[0] == True:
+            if move[1] != True:
+                self._win.redraw()
+                time.sleep(1)
+                AI_move = self.best_move()
+                if AI_move != None and not self._vertical_turn:
+                    self.horizontal_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
+                self._vertical_turn = True
 
     def best_move(self):
         win_lines = []
@@ -399,12 +407,14 @@ class AI_Board(Board):
         if self.d_board[2][2]==[True, True] and c_board[2][2]==[True, False]:
             return [2, 2]
 
-def make_board(button1, button2, win):
+def make_board(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
+    rules.destroy()
     b1 = Board(100, 100, 150, win)
 
-def make_AI_board(button1, button2, win):
+def make_AI_board(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
+    rules.destroy()
     b1 = AI_Board(100, 100, 150, win)
