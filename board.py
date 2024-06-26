@@ -177,6 +177,10 @@ class Board():
                                 anchor="center", command=self.reset_board)
         self.replay.place(width=self._win._width/3, height=self._win._height/30,
                           x=self._win._width/3, y=(self._win._height/2)-(self._win._height/45))
+        self.menu = tk.Button(bg="#00C000", activebackground="#009000", borderwidth=0, text="Main Menu",
+                                anchor="center", command=self.main_menu)
+        self.menu.place(width=self._win._width/3, height=self._win._height/30,
+                          x=self._win._width/3, y=(self._win._height/2)+(self._win._height/45))
 
     def end_program(self):
         self._win.get_root().destroy()
@@ -184,6 +188,7 @@ class Board():
     def reset_board(self):
         self.close.destroy()
         self.replay.destroy()
+        self.menu.destroy()
         for col in self._buttons:
             for button in col:
                 button["state"] = "normal"
@@ -194,6 +199,32 @@ class Board():
                 cell.reset()
                 cell.draw()
 
+    def main_menu(self):
+        self.close.destroy()
+        self.replay.destroy()
+        self.menu.destroy()
+        self._vertical_score_teller.destroy()
+        self._horizontal_score_teller.destroy()
+        for col in self._buttons:
+            for button in col:
+                button.destroy()
+        for line in self.win_lines:
+            self._win.draw_line(line, "black")
+        for col in self._cells:
+            for cell in col:
+                cell.reset()
+                cell.disappear()
+        window_length = self._win._width
+        window_height = self._win._height
+        button1 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
+                            anchor="center")
+        button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
+                            anchor="center")
+        button1['command'] = lambda button1=button1, button2=button2, win=self._win: make_board(button1, button2, win)
+        button2['command'] = lambda button1=button1, button2=button2, win=self._win: make_AI_board(button1, button2, win)
+        button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
+        button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+
     def display_scores(self):
         vertical_score = tk.StringVar()
         vertical_score.set(f"Vertical wins: {self._vertical_score}")
@@ -203,8 +234,8 @@ class Board():
         horizontal_score.set(f"Horizontal wins: {self._horizontal_score}")
         self._horizontal_score_teller = tk.Label(height=1, width=100, bg="#00FF00", fg="black",
                                                  textvariable=horizontal_score)
-        self._vertical_score_teller.place(x=2, y=2)
-        self._horizontal_score_teller.place(x=2, y=22)
+        self._vertical_score_teller.place(x=2, y=22)
+        self._horizontal_score_teller.place(x=2, y=42)
 
 class AI_Board(Board):
     def __init__(self, cell_size, x1, y1, win=None):
@@ -367,3 +398,13 @@ class AI_Board(Board):
             return [1, 2]
         if self.d_board[2][2]==[True, True] and c_board[2][2]==[True, False]:
             return [2, 2]
+
+def make_board(button1, button2, win):
+    button1.destroy()
+    button2.destroy()
+    b1 = Board(100, 100, 150, win)
+
+def make_AI_board(button1, button2, win):
+    button1.destroy()
+    button2.destroy()
+    b1 = AI_Board(100, 100, 150, win)

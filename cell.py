@@ -70,3 +70,14 @@ class Cell:
         x_difference = (self._x1 - self._x2) / 8
         line = Line(Point(self._x1 - x_difference, y_average), Point(self._x2 + x_difference, y_average))
         self._win.draw_line(line, "black")
+
+    def disappear(self):
+        self.has_left_wall = False
+        self.has_right_wall = False
+        self.has_top_wall = False
+        self.has_bottom_wall = False
+        self.draw()
+        self.has_left_wall = True
+        self.has_right_wall = True
+        self.has_top_wall = True
+        self.has_bottom_wall = True
