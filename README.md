@@ -6,4 +6,3 @@ While there is a strategy that allows the second player to win every time, the A
 To use this application, run
 ```gh repo clone https://github.com/just-another-guy-with-a-username/tic-oat-two```
 
-More updates will come as I make more variations of tic-tac-toe.
