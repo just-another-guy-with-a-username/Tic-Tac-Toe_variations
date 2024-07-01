@@ -30,6 +30,8 @@ class Window:
     def get_root(self):
         return self.__root
 
+    def get_canvas(self):
+        return self.__canvas
 
 class Point:
     def __init__(self, x, y):

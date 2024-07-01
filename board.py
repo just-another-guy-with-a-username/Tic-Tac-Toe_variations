@@ -1,13 +1,12 @@
 import tkinter as tk
 from cell import Cell
 from graphics import Line, Point
-import random
 import time
 
 
 
 class Board():
-    def __init__(self, cell_size, x1, y1, win=None):
+    def __init__(self, cell_size, x1, y1, win):
         self._dimensions = 3
         self._cell_size = cell_size
         self._x1 = x1
@@ -48,8 +47,6 @@ class Board():
                 self._draw_cell_and_button(i, j)
 
     def _draw_cell_and_button(self, i, j):
-        if self._win is None:
-            return
         if i == 0:
             self._cells[i][j].has_left_wall = False
         if i == self._dimensions - 1:
@@ -70,8 +67,6 @@ class Board():
         self._animate()
 
     def _animate(self):
-        if self._win is None:
-            return
         self._win.redraw()
 
     def move(self, i, j):
@@ -100,12 +95,12 @@ class Board():
                     for button in col:
                         button["state"] = "disabled"
                 self._vertical_score += 1
+                self._vertical_score_teller.destroy()
+                self._horizontal_score_teller.destroy()
                 self.display_scores()
                 self.end_buttons()
                 return [True, True]
             return [True, False]
-        else:
-            print("Illegal Move Found!")
         return [False, False]
 
     def horizontal_move(self, cell, i, j):
@@ -127,10 +122,10 @@ class Board():
                     for button in col:
                         button["state"] = "disabled"
                 self._horizontal_score += 1
+                self._vertical_score_teller.destroy()
+                self._horizontal_score_teller.destroy()
                 self.display_scores()
                 self.end_buttons()
-        else:
-            print("Illegal Move Found!")
 
     def check_win(self):
          win_count = 0
@@ -201,6 +196,9 @@ class Board():
                 cell.reset()
                 cell.draw()
         self._vertical_turn = True
+        self._vertical_score_teller.destroy()
+        self._horizontal_score_teller.destroy()
+        self.display_scores()
 
     def main_menu(self):
         self.close.destroy()
@@ -208,6 +206,10 @@ class Board():
         self.menu.destroy()
         self._vertical_score_teller.destroy()
         self._horizontal_score_teller.destroy()
+        necesary = tk.StringVar()
+        necesary.set('Game Select')
+        title = tk.Label(self._win.get_root(), textvariable=necesary)
+        title.place(x=1, y=1, width=self._win._width)
         for col in self._buttons:
             for button in col:
                 button.destroy()
@@ -219,16 +221,12 @@ class Board():
                 cell.disappear()
         window_length = self._win._width
         window_height = self._win._height
-        necesary2 = tk.StringVar()
-        necesary2.set('The Rules:\nlike regular tic-tac-toe, but with a twist. one player plays vertical lines, while the other plays horizontal lines. When two players play on the same space, a cross is formed. The player to finish a row of three crosses first is the winner. You can not play a line on the same square your opponent played on in their previous turn, as this makes player 2 unable to lose. Have fun!')
-        rules = tk.Label(self._win.get_root(), textvariable=necesary2, wraplength=190, bg="#00C000", bd=3, relief="raised")
-        rules.place(x=10, y=150, width=200, height=300)
-        button1 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
+        button1 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tic-Tac-Toe",
                             anchor="center")
-        button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
+        button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tick-oaT-Two",
                             anchor="center")
-        button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=self._win: make_board(button1, button2, rules, win)
-        button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=self._win: make_AI_board(button1, button2, rules, win)
+        button1['command'] = lambda button1=button1, button2=button2, win=self._win: tac([button1, button2], win)
+        button2['command'] = lambda button1=button1, button2=button2, win=self._win: oat([button1, button2], win)
         button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
         button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
 
@@ -245,7 +243,7 @@ class Board():
         self._horizontal_score_teller.place(x=0, y=40, height=20, width=self._win._width)
 
 class AI_Board(Board):
-    def __init__(self, cell_size, x1, y1, win=None):
+    def __init__(self, cell_size, x1, y1, win):
         super().__init__(cell_size, x1, y1, win)
         self.d_board = [[[False, False], [True, True], [False, False]],
                         [[True, True], [False, False], [True, True]],
@@ -407,6 +405,264 @@ class AI_Board(Board):
         if self.d_board[2][2]==[True, True] and c_board[2][2]==[True, False]:
             return [2, 2]
 
+class RBoard(Board):
+    def __init__(self, cell_size, x1, y1, win):
+        self._dimensions = 3
+        self._cell_size = cell_size
+        self._x1 = x1
+        self._y1 = y1
+        self._win = win
+        self._cells = []
+        self._buttons = []
+        self._x_turn = True
+        self.start = "x"
+        self._x_score = 0
+        self._o_score = 0
+        self.close = None
+        self.replay = None
+        self.menu = None
+        self.win_lines = []
+        self._x_score_teller = None
+        self._o_score_teller = None
+        self.display_scores()
+        self._create_cells_and_buttons()
+
+    def display_scores(self):
+        vertical_score = tk.StringVar()
+        vertical_score.set(f"X wins: {self._x_score}")
+        self._x_score_teller = tk.Label(height=1, width=100, bg="#00FF00", fg="black",
+                                               textvariable=vertical_score)
+        horizontal_score = tk.StringVar()
+        horizontal_score.set(f"O wins: {self._o_score}")
+        self._o_score_teller = tk.Label(height=1, width=100, bg="#00FF00", fg="black",
+                                                 textvariable=horizontal_score)
+        self._x_score_teller.place(x=0, y=20, height=20, width=self._win._width)
+        self._o_score_teller.place(x=0, y=40, height=20, width=self._win._width)
+
+    def move(self, i, j):
+        cell = self._cells[i][j]
+        if self._x_turn:
+            self.x_move(cell, i, j)
+        else:
+            self.o_move(cell, i, j)
+
+    def x_move(self, cell, i, j):
+        if not cell.has_o and not cell.has_x:
+            self._cells[i][j].draw_x()
+            self._cells[i][j].has_x = True
+            self._x_turn = False
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("X wins!")
+                else:
+                    print(f"X wins with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._x_score += 1
+                self._x_score_teller.destroy()
+                self._o_score_teller.destroy()
+                self.display_scores()
+                self.end_buttons()
+                return [True, True]
+            else:
+                empty_cells = 0
+                for col in self._cells:
+                    for cell in col:
+                        if not cell.has_x and not cell.has_o:
+                            empty_cells += 1
+                if empty_cells == 0:
+                    print("It's a draw!")
+                    self.end_buttons()
+                    return [True, True]
+            return [True, False]
+        return [False, False]
+
+    def o_move(self, cell, i, j):
+        if not cell.has_o and not cell.has_x:
+            self._cells[i][j].draw_o()
+            self._cells[i][j].has_o = True
+            self._x_turn = True
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("O wins!")
+                else:
+                    print(f"O wins with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._o_score += 1
+                self._x_score_teller.destroy()
+                self._o_score_teller.destroy()
+                self.display_scores()
+                self.end_buttons()
+            else:
+                empty_cells = 0
+                for col in self._cells:
+                    for cell in col:
+                        if not cell.has_x and not cell.has_o:
+                            empty_cells += 1
+                if empty_cells == 0:
+                    print("It's a draw!")
+                    self.end_buttons()
+
+    def check_win(self):
+        win_count = 0
+        for i in range(0, self._dimensions):
+            if ((self._cells[i][0].has_o==True and self._cells[i][1].has_o==True and self._cells[i][2].has_o==True) or
+                (self._cells[i][0].has_x==True and self._cells[i][1].has_x==True and self._cells[i][2].has_x==True)):
+                win_count += 1
+                self._win.draw_line(Line(Point(self._cells[i][0]._x1+self._cell_size/2, self._cells[i][0]._y1),
+                                         Point(self._cells[i][0]._x1+self._cell_size/2, self._cells[i][2]._y2)))
+                self.win_lines.append(Line(Point(self._cells[i][0]._x1+self._cell_size/2, self._cells[i][0]._y1),
+                                           Point(self._cells[i][0]._x1+self._cell_size/2, self._cells[i][2]._y2)))
+        for i in range(0, self._dimensions):
+            if ((self._cells[0][i].has_o==True and self._cells[1][i].has_o==True and self._cells[2][i].has_o==True) or
+                (self._cells[0][i].has_x==True and self._cells[1][i].has_x==True and self._cells[2][i].has_x==True)):
+                win_count += 1
+                self._win.draw_line(Line(Point(self._cells[0][i]._x1, self._cells[0][i]._y1+self._cell_size/2),
+                                         Point(self._cells[2][i]._x2, self._cells[0][i]._y1+self._cell_size/2)))
+                self.win_lines.append(Line(Point(self._cells[0][i]._x1, self._cells[0][i]._y1+self._cell_size/2),
+                                           Point(self._cells[2][i]._x2, self._cells[0][i]._y1+self._cell_size/2)))
+        if ((self._cells[0][0].has_o==True and self._cells[1][1].has_o==True and self._cells[2][2].has_o==True) or
+            (self._cells[0][0].has_x==True and self._cells[1][1].has_x==True and self._cells[2][2].has_x==True)):
+            win_count += 1
+            self._win.draw_line(Line(Point(self._cells[0][0]._x1, self._cells[0][0]._y1),
+                                     Point(self._cells[2][2]._x2, self._cells[2][2]._y2)))
+            self.win_lines.append(Line(Point(self._cells[0][0]._x1, self._cells[0][0]._y1),
+                                       Point(self._cells[2][2]._x2, self._cells[2][2]._y2)))
+        if ((self._cells[0][2].has_o==True and self._cells[1][1].has_o==True and self._cells[2][0].has_o==True) or
+            (self._cells[0][2].has_x==True and self._cells[1][1].has_x==True and self._cells[2][0].has_x==True)):
+            win_count += 1
+            self._win.draw_line(Line(Point(self._cells[2][0]._x2, self._cells[2][0]._y1),
+                                     Point(self._cells[0][2]._x1, self._cells[0][2]._y2)))
+            self.win_lines.append(Line(Point(self._cells[2][0]._x2, self._cells[2][0]._y1),
+                                       Point(self._cells[0][2]._x1, self._cells[0][2]._y2)))
+        return win_count
+
+    def reset_board(self):
+        self.close.destroy()
+        self.replay.destroy()
+        self.menu.destroy()
+        for col in self._buttons:
+            for button in col:
+                button["state"] = "normal"
+        for line in self.win_lines:
+            self._win.draw_line(line, "black")
+        for col in self._cells:
+            for cell in col:
+                cell.reset()
+                cell.draw()
+        if self.start == "o":
+            self._x_turn = True
+            self.start = "x"
+        else:
+            self._x_turn = False
+            self.start = "o"
+
+    def main_menu(self):
+        self.close.destroy()
+        self.replay.destroy()
+        self.menu.destroy()
+        self._x_score_teller.destroy()
+        self._o_score_teller.destroy()
+        for col in self._buttons:
+            for button in col:
+                button.destroy()
+        for line in self.win_lines:
+            self._win.draw_line(line, "black")
+        for col in self._cells:
+            for cell in col:
+                cell.reset()
+                cell.disappear()
+        window_length = self._win._width
+        window_height = self._win._height
+        necesary = tk.StringVar()
+        necesary.set('Game Select')
+        title = tk.Label(self._win.get_root(), textvariable=necesary)
+        title.place(x=1, y=1, width=self._win._width)
+        button1 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tic-Tac-Toe",
+                            anchor="center")
+        button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tick-oaT-Two",
+                            anchor="center")
+        button1['command'] = lambda button1=button1, button2=button2, win=self._win: tac([button1, button2], win)
+        button2['command'] = lambda button1=button1, button2=button2, win=self._win: oat([button1, button2], win)
+        button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
+        button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+
+class AI_RBoard(RBoard):
+    def move(self, i, j):
+        cell = self._cells[i][j]
+        if self._x_turn:
+            move = self.x_move(cell, i, j)
+        if move[0] == True:
+            if move[1] != True:
+                self._win.redraw()
+                time.sleep(1)
+                AI_move = self.best_move()
+                if AI_move != None and not self._x_turn:
+                    self.o_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
+                self._x_turn = True
+
+    def best_move(self):
+        c_board = []
+        for col in self._cells:
+            c_col = []
+            for cell in col:
+                c_col.append([cell.has_x, cell.has_o])
+            c_board.append(c_col)
+        return None
+
+def tac(button_list, win):
+    for button in button_list:
+        button.destroy()
+    necesary = tk.StringVar()
+    necesary.set('Tic-Tac-Toe')
+    title = tk.Label(win.get_root(), textvariable=necesary)
+    title.place(x=1, y=1, width=win._width)
+    necesary2 = tk.StringVar()
+    necesary2.set("The Rules:\nthe original. If you don't already know how to play this game, you'll pick it up quickly")
+    rules = tk.Label(win.get_root(), textvariable=necesary2, wraplength=190, bg="#00C000", bd=3, relief="raised")
+    rules.place(x=10, y=150, width=200, height=300)
+    button1 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
+                        anchor="center")
+    button2 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
+                        anchor="center")
+    button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_rboard(button1, button2, rules, win)
+    button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_AI_rboard(button1, button2, rules, win)
+    button1.place(x=win._width/3, y=win._height/5, width=win._width/3, height=win._height/5)
+    button2.place(x=win._width/3, y=(win._height/5)*3, width=win._width/3, height=win._height/5)
+    win.wait_for_close()
+
+def oat(button_list, win):
+    for button in button_list:
+        button.destroy()
+    necesary = tk.StringVar()
+    necesary.set('Tick-oaT-Two')
+    title = tk.Label(win.get_root(), textvariable=necesary)
+    title.place(x=1, y=1, width=win._width)
+    necesary2 = tk.StringVar()
+    necesary2.set('The Rules:\nlike regular tic-tac-toe, but with a twist. one player plays vertical lines, while the other plays horizontal lines. When two players play on the same space, a cross is formed. The player to finish a row of three crosses first is the winner. You can not play a line on the same square your opponent played on in their previous turn, as this makes player 2 unable to lose. Have fun!')
+    rules = tk.Label(win.get_root(), textvariable=necesary2, wraplength=190, bg="#00C000", bd=3, relief="raised")
+    rules.place(x=10, y=150, width=200, height=300)
+    button1 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
+                        anchor="center")
+    button2 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
+                        anchor="center")
+    button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_board(button1, button2, rules, win)
+    button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_AI_board(button1, button2, rules, win)
+    button1.place(x=win._width/3, y=win._height/5, width=win._width/3, height=win._height/5)
+    button2.place(x=win._width/3, y=(win._height/5)*3, width=win._width/3, height=win._height/5)
+    win.wait_for_close()
+
+def make_rboard(button1, button2, rules, win):
+    button1.destroy()
+    button2.destroy()
+    rules.destroy()
+    b1 = RBoard(100, 100, 150, win)
+
 def make_board(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
@@ -418,3 +674,10 @@ def make_AI_board(button1, button2, rules, win):
     button2.destroy()
     rules.destroy()
     b1 = AI_Board(100, 100, 150, win)
+
+def make_AI_rboard(button1, button2, rules, win):
+    button1.destroy()
+    button2.destroy()
+    rules.destroy()
+    print("unimplemented")
+
