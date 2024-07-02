@@ -13,4 +13,4 @@ In this fun and enjoyable game, you can play with a friend or against an AI, but
 While the first player can force win or draw every time, the AI operates in such a way that the player can win sometimes to make it more fun.
 
 To use this application, run
-```git clone https://github.com/just-another-guy-with-a-username/Tick-oaT-Two.git```
+```git clone https://github.com/just-another-guy-with-a-username/Tic-Tac-Toe_variations.git```
