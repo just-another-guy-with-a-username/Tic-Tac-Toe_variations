@@ -2,9 +2,9 @@ import tkinter as tk
 
 
 class Window:
-    def __init__(self, width, height):
+    def __init__(self, width, height, title):
         self.__root = tk.Tk()
-        self.__root.title("Tick-oaT-Two")
+        self.__root.title(title)
         self.__root.protocol("WM_DELETE_WINDOW", self.close)
         self.__canvas = tk.Canvas(self.__root, bg="black", height=height, width=width)
         self.__canvas.pack(fill=tk.BOTH, expand=1)

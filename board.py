@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 from cell import Cell
 from graphics import Line, Point
@@ -225,10 +226,14 @@ class Board():
                             anchor="center")
         button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tick-oaT-Two",
                             anchor="center")
-        button1['command'] = lambda button1=button1, button2=button2, win=self._win: tac([button1, button2], win)
-        button2['command'] = lambda button1=button1, button2=button2, win=self._win: oat([button1, button2], win)
-        button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
-        button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+        button3 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Inverse Tic-Tac-Toe",
+                            anchor="center")
+        button1['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: tac([button1, button2, button3], win)
+        button2['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: oat([button1, button2, button3], win)
+        button3['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: inv([button1, button2, button3], win)
+        button1.place(x=window_length/9, y=window_height/5, width=window_length/3, height=window_height/5)
+        button2.place(x=window_length/9, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+        button3.place(x=5*(window_length/9), y=(window_height/5), width=window_length/3, height=window_height/5)
 
     def display_scores(self):
         vertical_score = tk.StringVar()
@@ -474,6 +479,9 @@ class RBoard(Board):
                             empty_cells += 1
                 if empty_cells == 0:
                     print("It's a draw!")
+                    for col in self._buttons:
+                        for button in col:
+                            button["state"] = "disabled"
                     self.end_buttons()
                     return [True, True]
             return [True, False]
@@ -506,6 +514,9 @@ class RBoard(Board):
                             empty_cells += 1
                 if empty_cells == 0:
                     print("It's a draw!")
+                    for col in self._buttons:
+                        for button in col:
+                            button["state"] = "disabled"
                     self.end_buttons()
 
     def check_win(self):
@@ -587,10 +598,14 @@ class RBoard(Board):
                             anchor="center")
         button2 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Tick-oaT-Two",
                             anchor="center")
-        button1['command'] = lambda button1=button1, button2=button2, win=self._win: tac([button1, button2], win)
-        button2['command'] = lambda button1=button1, button2=button2, win=self._win: oat([button1, button2], win)
-        button1.place(x=window_length/3, y=window_height/5, width=window_length/3, height=window_height/5)
-        button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+        button3 = tk.Button(self._win.get_root(), bg="#00C000", activebackground="#009000", text="Inverse Tic-Tac-Toe",
+                            anchor="center")
+        button1['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: tac([button1, button2, button3], win)
+        button2['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: oat([button1, button2, button3], win)
+        button3['command'] = lambda button1=button1, button2=button2, button3=button3, win=self._win: inv([button1, button2, button3], win)
+        button1.place(x=window_length/9, y=window_height/5, width=window_length/3, height=window_height/5)
+        button2.place(x=window_length/9, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
+        button3.place(x=5*(window_length/9), y=(window_height/5), width=window_length/3, height=window_height/5)
 
 class AI_RBoard(RBoard):
     def reset_board(self):
@@ -903,6 +918,426 @@ class AI_RBoard(RBoard):
             twos += 1
         return twos
 
+class IBoard(RBoard):
+    def o_move(self, cell, i, j):
+        if not cell.has_o and not cell.has_x:
+            self._cells[i][j].draw_o()
+            self._cells[i][j].has_o = True
+            self._x_turn = True
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("O loses!")
+                else:
+                    print(f"O loses with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._x_score += 1
+                self._x_score_teller.destroy()
+                self._o_score_teller.destroy()
+                self.display_scores()
+                self.end_buttons()
+            else:
+                empty_cells = 0
+                for col in self._cells:
+                    for cell in col:
+                        if not cell.has_x and not cell.has_o:
+                            empty_cells += 1
+                if empty_cells == 0:
+                    print("It's a draw!")
+                    for col in self._buttons:
+                        for button in col:
+                            button["state"] = "disabled"
+                    self.end_buttons()
+
+    def x_move(self, cell, i, j):
+        if not cell.has_o and not cell.has_x:
+            self._cells[i][j].draw_x()
+            self._cells[i][j].has_x = True
+            self._x_turn = False
+            win = self.check_win()
+            if win != 0:
+                if win == 1:
+                    print("X loses!")
+                else:
+                    print(f"X loses with {win} lines!")
+                for col in self._buttons:
+                    for button in col:
+                        button["state"] = "disabled"
+                self._o_score += 1
+                self._x_score_teller.destroy()
+                self._o_score_teller.destroy()
+                self.display_scores()
+                self.end_buttons()
+                return [True, True]
+            else:
+                empty_cells = 0
+                for col in self._cells:
+                    for cell in col:
+                        if not cell.has_x and not cell.has_o:
+                            empty_cells += 1
+                if empty_cells == 0:
+                    print("It's a draw!")
+                    for col in self._buttons:
+                        for button in col:
+                            button["state"] = "disabled"
+                    self.end_buttons()
+                    return [True, True]
+            return [True, False]
+        return [False, False]
+
+class AI_IBoard(IBoard):
+    def reset_board(self):
+        super().reset_board()
+        if self._x_turn == False:
+            self.o_move(self._cells[1][1], 1, 1)
+
+    def move(self, i, j):
+        cell = self._cells[i][j]
+        if self._x_turn:
+            move = self.x_move(cell, i, j)
+        if move[0] == True:
+            if move[1] != True:
+                self._win.redraw()
+                time.sleep(1)
+                AI_move = self.best_move()
+                if AI_move != None and not self._x_turn:
+                    self.o_move(self._cells[AI_move[0]][AI_move[1]], AI_move[0], AI_move[1])
+                self._x_turn = True
+
+    def best_move(self):
+        c_board = []
+        for col in self._cells:
+            c_col = []
+            for cell in col:
+                if cell.has_x:
+                    c_col.append('x')
+                elif cell.has_o:
+                    c_col.append('o')
+                else:
+                    c_col.append(None)
+            c_board.append(c_col)
+        available_cells = []
+        for i in range(0, 3):
+            a_col = []
+            for j in range(0, 3):
+                if c_board[i][j] == None:
+                    a_col.append(True)
+                    continue
+                a_col.append(False)
+            available_cells.append(a_col)
+        if len(available_cells) == 1:
+            return available_cells[0]
+        win_lines = []
+        for i in range(0, self._dimensions):
+            if ((self._cells[i][0].has_o==True and self._cells[i][1].has_o==True) or
+                (self._cells[i][0].has_o==True and self._cells[i][2].has_o==True) or
+                (self._cells[i][1].has_o==True and self._cells[i][2].has_o==True)):
+                win_lines.append([[i, 0], [i, 1], [i, 2]])
+        for i in range(0, self._dimensions):
+            if ((self._cells[0][i].has_o==True and self._cells[1][i].has_o==True) or
+                (self._cells[0][i].has_o==True and self._cells[2][i].has_o==True) or
+                (self._cells[1][i].has_o==True and self._cells[2][i].has_o==True)):
+                win_lines.append([[0, i], [1, i], [2, i]])
+        if ((self._cells[0][0].has_o==True and self._cells[1][1].has_o==True) or
+            (self._cells[0][0].has_o==True and self._cells[2][2].has_o==True) or
+            (self._cells[1][1].has_o==True and self._cells[2][2].has_o==True)):
+            win_lines.append([[0, 0], [1, 1], [2, 2]])
+        if ((self._cells[0][2].has_o==True and self._cells[1][1].has_o==True) or
+            (self._cells[0][2].has_o==True and self._cells[2][0].has_o==True) or
+            (self._cells[1][1].has_o==True and self._cells[2][0].has_o==True)):
+            win_lines.append([[0, 2], [1, 1], [2, 0]])
+        if win_lines != []:
+            for line in win_lines:
+                for cell in line:
+                    if available_cells[cell[0]][cell[1]] == True:
+                        available_cells[cell[0]][cell[1]] = False
+        o_three = copy.deepcopy(available_cells)
+        pos = 0
+        for a_col in available_cells:
+            for a_cell in a_col:
+                if a_cell == True:
+                    pos += 1
+        if pos == 1:
+            for i in range(0, 2):
+                for j in range(0, 2):
+                    if available_cells[i][j] == True:
+                        return [i, j]
+        if o_three == [[False, False, False], [False, False, False], [False, False, False]]:
+            for i in range(0, 3):
+                for j in range(0, 3):
+                    if c_board[i][j] == None:
+                        return [i, j]
+        lose_lines = []
+        for i in range(0, self._dimensions):
+            if ((self._cells[i][0].has_x==True and self._cells[i][1].has_x==True) or
+                (self._cells[i][0].has_x==True and self._cells[i][2].has_x==True) or
+                (self._cells[i][1].has_x==True and self._cells[i][2].has_x==True)):
+                lose_lines.append([[i, 0], [i, 1], [i, 2]])
+        for i in range(0, self._dimensions):
+            if ((self._cells[0][i].has_x==True and self._cells[1][i].has_x==True) or
+                (self._cells[0][i].has_x==True and self._cells[2][i].has_x==True) or
+                (self._cells[1][i].has_x==True and self._cells[2][i].has_x==True)):
+                lose_lines.append([[0, i], [1, i], [2, i]])
+        if ((self._cells[0][0].has_x==True and self._cells[1][1].has_x==True) or
+            (self._cells[0][0].has_x==True and self._cells[2][2].has_x==True) or
+            (self._cells[1][1].has_x==True and self._cells[2][2].has_x==True)):
+            lose_lines.append([[0, 0], [1, 1], [2, 2]])
+        if ((self._cells[0][2].has_x==True and self._cells[1][1].has_x==True) or
+            (self._cells[0][2].has_x==True and self._cells[2][0].has_x==True) or
+            (self._cells[1][1].has_x==True and self._cells[2][0].has_x==True)):
+            lose_lines.append([[0, 2], [1, 1], [2, 0]])
+        if lose_lines != []:
+            for line in lose_lines:
+                for cell in line:
+                    if available_cells[cell[0]][cell[1]] == True:
+                        available_cells[cell[0]][cell[1]] = False
+        x_block = copy.deepcopy(available_cells)
+        pos = 0
+        for a_col in available_cells:
+            for a_cell in a_col:
+                if a_cell == True:
+                    pos += 1
+        if pos == 1:
+            for i in range(0, 2):
+                for j in range(0, 2):
+                    if available_cells[i][j] == True:
+                        return [i, j]
+        if x_block == [[False, False, False], [False, False, False], [False, False, False]]:
+            available_cells = copy.deepcopy(o_three)
+            x_block = copy.deepcopy(o_three)
+        two_list = []
+        for i in range(0, 3):
+            two_col = []
+            for j in range(0, 3):
+                twos = None
+                if available_cells[i][j] == True:
+                    if ((i == 1 and (j == 0 or j == 2)) or
+                        (j == 1 and (i == 0 or i == 2))):
+                        twos = self.wcheck_edge(i, j)
+                    elif i == 1 and j == 1:
+                        twos = self.wcheck_center()
+                    else:
+                        twos = self.wcheck_corner(i, j)
+                two_col.append(twos)
+            two_list.append(two_col)
+        min_list = self.min_list(two_list)
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if min_list[i][j] == None:
+                    available_cells[i][j] = False
+        o_twos = copy.deepcopy(available_cells)
+        pos = 0
+        for a_col in available_cells:
+            for a_cell in a_col:
+                if a_cell == True:
+                    pos += 1
+        if pos == 1:
+            for i in range(0, 2):
+                for j in range(0, 2):
+                    if available_cells[i][j] == True:
+                        return [i, j]
+        if o_twos == [[False, False, False], [False, False, False], [False, False, False]]:
+            available_cells = copy.deepcopy(x_block)
+            o_twos = copy.deepcopy(x_block)
+        two_list = []
+        for i in range(0, 3):
+            two_col = []
+            for j in range(0, 3):
+                twos = None
+                if available_cells[i][j] == True:
+                    if ((i == 1 and (j == 0 or j == 2)) or
+                        (j == 1 and (i == 0 or i == 2))):
+                        twos = self.lcheck_edge(i, j)
+                    elif i == 1 and j == 1:
+                        twos = self.lcheck_center()
+                    else:
+                        twos = self.lcheck_corner(i, j)
+                two_col.append(twos)
+            two_list.append(two_col)
+        min_list = self.min_list(two_list)
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if min_list[i][j] == None:
+                    available_cells[i][j] = False
+        x_twos = copy.deepcopy(available_cells)
+        pos = 0
+        for a_col in available_cells:
+            for a_cell in a_col:
+                if a_cell == True:
+                    pos += 1
+        if pos == 1:
+            for i in range(0, 2):
+                for j in range(0, 2):
+                    if available_cells[i][j] == True:
+                        return [i, j]
+        if x_twos == [[False, False, False], [False, False, False], [False, False, False]]:
+            available_cells = copy.deepcopy(o_twos)
+        print(available_cells)
+        for i in range (0, 3):
+            for j in range (0, 3):
+                if available_cells[i][j] == True:
+                    return [i, j]
+
+    def min_list(self, l):
+        print(l)
+        min_list = []
+        min = float("inf")
+        for c in l:
+            for num in c:
+                if num != None:
+                    if num < min:
+                        min = num
+        for c in l:
+            min_col = []
+            for num in c:
+                if num == None:
+                    min_col.append(num)
+                elif num == min:
+                    min_col.append(num)
+                elif num > min:
+                    min_col.append(None)
+            min_list.append(min_col)
+        print(min_list)
+        return min_list
+
+    def wcheck_edge(self, i, j):
+        twos = 0
+        if i == 1 and j == 0:
+            if (self._cells[0][0].has_o and not self._cells[2][0].has_x) or (not self._cells[0][0].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[1][1].has_x) or (not self._cells[1][2].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 1 and j == 2:
+            if (self._cells[0][2].has_o and not self._cells[2][2].has_x) or (not self._cells[0][2].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[1][1].has_x) or (not self._cells[1][0].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 0 and j == 1:
+            if (self._cells[0][0].has_o and not self._cells[0][2].has_x) or (not self._cells[0][0].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[2][1].has_o and not self._cells[1][1].has_x) or (not self._cells[2][1].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 2 and j == 1:
+            if (self._cells[2][0].has_o and not self._cells[2][2].has_x) or (not self._cells[2][0].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[0][1].has_o and not self._cells[1][1].has_x) or (not self._cells[0][1].has_x and self._cells[1][1].has_o):
+                twos += 1
+        return twos
+
+    def lcheck_edge(self, i, j):
+        twos = 0
+        if i == 1 and j == 0:
+            if (self._cells[0][0].has_x and not self._cells[2][0].has_o) or (not self._cells[0][0].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[1][1].has_o) or (not self._cells[1][2].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 1 and j == 2:
+            if (self._cells[0][2].has_x and not self._cells[2][2].has_o) or (not self._cells[0][2].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[1][1].has_o) or (not self._cells[1][0].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 0 and j == 1:
+            if (self._cells[0][0].has_x and not self._cells[0][2].has_o) or (not self._cells[0][0].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[2][1].has_x and not self._cells[1][1].has_o) or (not self._cells[2][1].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 2 and j == 1:
+            if (self._cells[2][0].has_x and not self._cells[2][2].has_o) or (not self._cells[2][0].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[0][1].has_x and not self._cells[1][1].has_o) or (not self._cells[0][1].has_o and self._cells[1][1].has_x):
+                twos += 1
+        return twos
+
+    def wcheck_corner(self, i, j):
+        twos = 0
+        if i == 0 and j == 0:
+            if (self._cells[0][1].has_o and not self._cells[0][2].has_x) or (not self._cells[0][1].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[2][0].has_x) or (not self._cells[1][0].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[2][2].has_x) or (not self._cells[1][1].has_x and self._cells[2][2].has_o):
+                twos += 1
+        if i == 2 and j == 2:
+            if (self._cells[2][1].has_o and not self._cells[2][0].has_x) or (not self._cells[2][1].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[0][2].has_x) or (not self._cells[1][2].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[0][0].has_x) or (not self._cells[1][1].has_x and self._cells[0][0].has_o):
+                twos += 1
+        if i == 0 and j == 2:
+            if (self._cells[0][1].has_o and not self._cells[0][0].has_x) or (not self._cells[0][1].has_x and self._cells[0][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[2][2].has_x) or (not self._cells[1][2].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[2][0].has_x) or (not self._cells[1][1].has_x and self._cells[2][0].has_o):
+                twos += 1
+        if i == 2 and j == 0:
+            if (self._cells[2][1].has_o and not self._cells[2][2].has_x) or (not self._cells[2][1].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[0][0].has_x) or (not self._cells[1][0].has_x and self._cells[0][0].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[0][2].has_x) or (not self._cells[1][1].has_x and self._cells[0][2].has_o):
+                twos += 1
+        return twos
+
+    def lcheck_corner(self, i, j):
+        twos = 0
+        if i == 0 and j == 0:
+            if (self._cells[0][1].has_x and not self._cells[0][2].has_o) or (not self._cells[0][1].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[2][0].has_o) or (not self._cells[1][0].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[2][2].has_o) or (not self._cells[1][1].has_o and self._cells[2][2].has_x):
+                twos += 1
+        if i == 2 and j == 2:
+            if (self._cells[2][1].has_x and not self._cells[2][0].has_o) or (not self._cells[2][1].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[0][2].has_o) or (not self._cells[1][2].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[0][0].has_o) or (not self._cells[1][1].has_o and self._cells[0][0].has_x):
+                twos += 1
+        if i == 0 and j == 2:
+            if (self._cells[0][1].has_x and not self._cells[0][0].has_o) or (not self._cells[0][1].has_o and self._cells[0][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[2][2].has_o) or (not self._cells[1][2].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[2][0].has_o) or (not self._cells[1][1].has_o and self._cells[2][0].has_x):
+                twos += 1
+        if i == 2 and j == 0:
+            if (self._cells[2][1].has_x and not self._cells[2][2].has_o) or (not self._cells[2][1].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[0][0].has_o) or (not self._cells[1][0].has_o and self._cells[0][0].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[0][2].has_o) or (not self._cells[1][1].has_o and self._cells[0][2].has_x):
+                twos += 1
+        return twos
+
+    def wcheck_center(self):
+        twos = 0
+        if (self._cells[0][2].has_o and not self._cells[2][0].has_x) or (self._cells[2][0].has_o and not self._cells[0][2].has_x):
+            twos += 1
+        if (self._cells[2][2].has_o and not self._cells[0][0].has_x) or (self._cells[0][0].has_o and not self._cells[2][2].has_x):
+            twos += 1
+        if (self._cells[0][1].has_o and not self._cells[2][1].has_x) or (self._cells[2][1].has_o and not self._cells[0][1].has_x):
+            twos += 1
+        if (self._cells[1][2].has_o and not self._cells[1][0].has_x) or (self._cells[1][0].has_o and not self._cells[1][2].has_x):
+            twos += 1
+        return twos
+
+    def lcheck_center(self):
+        twos = 0
+        if (self._cells[0][2].has_x and not self._cells[2][0].has_o) or (self._cells[2][0].has_x and not self._cells[0][2].has_o):
+            twos += 1
+        if (self._cells[2][2].has_x and not self._cells[0][0].has_o) or (self._cells[0][0].has_x and not self._cells[2][2].has_o):
+            twos += 1
+        if (self._cells[0][1].has_x and not self._cells[2][1].has_o) or (self._cells[2][1].has_x and not self._cells[0][1].has_o):
+            twos += 1
+        if (self._cells[1][2].has_x and not self._cells[1][0].has_o) or (self._cells[1][0].has_x and not self._cells[1][2].has_o):
+            twos += 1
+        return twos
+
 def tac(button_list, win):
     for button in button_list:
         button.destroy()
@@ -920,6 +1355,27 @@ def tac(button_list, win):
                         anchor="center")
     button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_rboard(button1, button2, rules, win)
     button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_AI_rboard(button1, button2, rules, win)
+    button1.place(x=win._width/3, y=win._height/5, width=win._width/3, height=win._height/5)
+    button2.place(x=win._width/3, y=(win._height/5)*3, width=win._width/3, height=win._height/5)
+    win.wait_for_close()
+
+def inv(button_list, win):
+    for button in button_list:
+        button.destroy()
+    necesary = tk.StringVar()
+    necesary.set('Inverse Tic-Tac-Toe')
+    title = tk.Label(win.get_root(), textvariable=necesary)
+    title.place(x=1, y=1, width=win._width)
+    necesary2 = tk.StringVar()
+    necesary2.set("The Rules:\nthe original, but the goal is to make your opponent get three in a row")
+    rules = tk.Label(win.get_root(), textvariable=necesary2, wraplength=190, bg="#00C000", bd=3, relief="raised")
+    rules.place(x=10, y=150, width=200, height=300)
+    button1 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Local Multiplayer",
+                        anchor="center")
+    button2 = tk.Button(win.get_root(), bg="#00C000", activebackground="#009000", text="Singleplayer",
+                        anchor="center")
+    button1['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_iboard(button1, button2, rules, win)
+    button2['command'] = lambda button1=button1, button2=button2, rules=rules, win=win: make_AI_iboard(button1, button2, rules, win)
     button1.place(x=win._width/3, y=win._height/5, width=win._width/3, height=win._height/5)
     button2.place(x=win._width/3, y=(win._height/5)*3, width=win._width/3, height=win._height/5)
     win.wait_for_close()
@@ -945,17 +1401,23 @@ def oat(button_list, win):
     button2.place(x=win._width/3, y=(win._height/5)*3, width=win._width/3, height=win._height/5)
     win.wait_for_close()
 
+def make_board(button1, button2, rules, win):
+    button1.destroy()
+    button2.destroy()
+    rules.destroy()
+    b1 = Board(100, 100, 150, win)
+
 def make_rboard(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
     rules.destroy()
     b1 = RBoard(100, 100, 150, win)
 
-def make_board(button1, button2, rules, win):
+def make_iboard(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
     rules.destroy()
-    b1 = Board(100, 100, 150, win)
+    b1 = IBoard(100, 100, 150, win)
 
 def make_AI_board(button1, button2, rules, win):
     button1.destroy()
@@ -968,3 +1430,9 @@ def make_AI_rboard(button1, button2, rules, win):
     button2.destroy()
     rules.destroy()
     b1 = AI_RBoard(100, 100, 150, win)
+
+def make_AI_iboard(button1, button2, rules, win):
+    button1.destroy()
+    button2.destroy()
+    rules.destroy()
+    b1 = AI_IBoard(100, 100, 150, win)
