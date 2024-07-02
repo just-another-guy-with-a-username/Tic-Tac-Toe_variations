@@ -593,6 +593,11 @@ class RBoard(Board):
         button2.place(x=window_length/3, y=(window_height/5)*3, width=window_length/3, height=window_height/5)
 
 class AI_RBoard(RBoard):
+    def reset_board(self):
+        super().reset_board()
+        if self._x_turn == False:
+            self.o_move(self._cells[0][0], 0, 0)
+
     def move(self, i, j):
         cell = self._cells[i][j]
         if self._x_turn:
@@ -611,9 +616,292 @@ class AI_RBoard(RBoard):
         for col in self._cells:
             c_col = []
             for cell in col:
-                c_col.append([cell.has_x, cell.has_o])
+                if cell.has_x:
+                    c_col.append('x')
+                elif cell.has_o:
+                    c_col.append('o')
+                else:
+                    c_col.append(None)
             c_board.append(c_col)
+        win_lines = []
+        for i in range(0, self._dimensions):
+            if ((self._cells[i][0].has_o==True and self._cells[i][1].has_o==True) or
+                (self._cells[i][0].has_o==True and self._cells[i][2].has_o==True) or
+                (self._cells[i][1].has_o==True and self._cells[i][2].has_o==True)):
+                win_lines.append([[i, 0], [i, 1], [i, 2]])
+        for i in range(0, self._dimensions):
+            if ((self._cells[0][i].has_o==True and self._cells[1][i].has_o==True) or
+                (self._cells[0][i].has_o==True and self._cells[2][i].has_o==True) or
+                (self._cells[1][i].has_o==True and self._cells[2][i].has_o==True)):
+                win_lines.append([[0, i], [1, i], [2, i]])
+        if ((self._cells[0][0].has_o==True and self._cells[1][1].has_o==True) or
+            (self._cells[0][0].has_o==True and self._cells[2][2].has_o==True) or
+            (self._cells[1][1].has_o==True and self._cells[2][2].has_o==True)):
+            win_lines.append([[0, 0], [1, 1], [2, 2]])
+        if ((self._cells[0][2].has_o==True and self._cells[1][1].has_o==True) or
+            (self._cells[0][2].has_o==True and self._cells[2][0].has_o==True) or
+            (self._cells[1][1].has_o==True and self._cells[2][0].has_o==True)):
+            win_lines.append([[0, 2], [1, 1], [2, 0]])
+        if win_lines != []:
+            for line in win_lines:
+                for cell in line:
+                    if not self._cells[cell[0]][cell[1]].has_o and not self._cells[cell[0]][cell[1]].has_x:
+                        return cell
+        lose_lines = []
+        for i in range(0, self._dimensions):
+            if ((self._cells[i][0].has_x==True and self._cells[i][1].has_x==True) or
+                (self._cells[i][0].has_x==True and self._cells[i][2].has_x==True) or
+                (self._cells[i][1].has_x==True and self._cells[i][2].has_x==True)):
+                lose_lines.append([[i, 0], [i, 1], [i, 2]])
+        for i in range(0, self._dimensions):
+            if ((self._cells[0][i].has_x==True and self._cells[1][i].has_x==True) or
+                (self._cells[0][i].has_x==True and self._cells[2][i].has_x==True) or
+                (self._cells[1][i].has_x==True and self._cells[2][i].has_x==True)):
+                lose_lines.append([[0, i], [1, i], [2, i]])
+        if ((self._cells[0][0].has_x==True and self._cells[1][1].has_x==True) or
+            (self._cells[0][0].has_x==True and self._cells[2][2].has_x==True) or
+            (self._cells[1][1].has_x==True and self._cells[2][2].has_x==True)):
+            lose_lines.append([[0, 0], [1, 1], [2, 2]])
+        if ((self._cells[0][2].has_x==True and self._cells[1][1].has_x==True) or
+            (self._cells[0][2].has_x==True and self._cells[2][0].has_x==True) or
+            (self._cells[1][1].has_x==True and self._cells[2][0].has_x==True)):
+            lose_lines.append([[0, 2], [1, 1], [2, 0]])
+        if lose_lines != []:
+            for line in lose_lines:
+                for cell in line:
+                    if not self._cells[cell[0]][cell[1]].has_o and not self._cells[cell[0]][cell[1]].has_x:
+                        return cell
+        if c_board == [['o', None, None],
+                       [None, 'x', None],
+                       [None, None, None]]:
+            return [2, 2]
+        if c_board == [['x', None, None],
+                       [None, None, None],
+                       [None, None, None]]:
+            return [1, 1]
+        if c_board == [[None, None, 'x'],
+                       [None, None, None],
+                       [None, None, None]]:
+            return [1, 1]
+        if c_board == [[None, None, None],
+                       [None, None, None],
+                       ['x', None, None]]:
+            return [1, 1]
+        if c_board == [[None, None, None],
+                       [None, None, None],
+                       [None, None, 'x']]:
+            return [1, 1]
+        if c_board == [['x', None, None],
+                       [None, 'o', None],
+                       [None, None, 'x']]:
+            return [1, 0]
+        if c_board == [[None, None, 'x'],
+                       [None, 'o', None],
+                       ['x', None, None]]:
+            return [1, 0]
+        two_list = []
+        for i in range(0, 3):
+            two_col = []
+            for j in range(0, 3):
+                twos = 0
+                if c_board[i][j] == None:
+                    if ((i == 1 and (j == 0 or j == 2)) or
+                        (j == 1 and (i == 0 or i == 2))):
+                        twos += self.wcheck_edge(i, j)
+                    elif i == 1 and j == 1:
+                        twos += self.wcheck_center()
+                    else:
+                        twos += self.wcheck_corner(i, j)
+                two_col.append(twos)
+            two_list.append(two_col)
+        best = 0
+        for i in range(0, 2):
+            for j in range(0, 2):
+                if best < two_list[i][j]:
+                    best = two_list[i][j]
+                    good_i = i
+                    good_j = j
+        if best != 0:
+            return [good_i, good_j]
+        two_list = []
+        for i in range(0, 3):
+            two_col = []
+            for j in range(0, 3):
+                twos = 0
+                if c_board[i][j] == None:
+                    if ((i == 1 and (j == 0 or j == 2)) or
+                        (j == 1 and (i == 0 or i == 2))):
+                        twos += self.lcheck_edge(i, j)
+                    elif i == 1 and j == 1:
+                        twos += self.lcheck_center()
+                    else:
+                        twos += self.lcheck_corner(i, j)
+                two_col.append(twos)
+            two_list.append(two_col)
+        best = 0
+        for i in range(0, 2):
+            for j in range(0, 2):
+                if best < two_list[i][j]:
+                    best = two_list[i][j]
+                    good_i = i
+                    good_j = j
+        if best != 0:
+            return [good_i, good_j]
+        if c_board[1][1] == None:
+            return [1, 1]
+        if c_board[1][0] == None:
+            return [1, 0]
+        if c_board[1][2] == None:
+            return [1, 2]
+        if c_board[0][1] == None:
+            return [0, 1]
+        if c_board[0][2] == None:
+            return [2, 1]
+        if c_board[2][0] == None:
+            return [2, 0]
+        if c_board[0][2] == None:
+            return [0, 2]
+        if c_board[0][0] == None:
+            return [0, 0]
+        if c_board[2][2] == None:
+            return [2, 2]
         return None
+
+    def wcheck_edge(self, i, j):
+        twos = 0
+        if i == 1 and j == 0:
+            if (self._cells[0][0].has_o and not self._cells[2][0].has_x) or (not self._cells[0][0].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[1][1].has_x) or (not self._cells[1][2].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 1 and j == 2:
+            if (self._cells[0][2].has_o and not self._cells[2][2].has_x) or (not self._cells[0][2].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[1][1].has_x) or (not self._cells[1][0].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 0 and j == 1:
+            if (self._cells[0][0].has_o and not self._cells[0][2].has_x) or (not self._cells[0][0].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[2][1].has_o and not self._cells[1][1].has_x) or (not self._cells[2][1].has_x and self._cells[1][1].has_o):
+                twos += 1
+        if i == 2 and j == 1:
+            if (self._cells[2][0].has_o and not self._cells[2][2].has_x) or (not self._cells[2][0].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[0][1].has_o and not self._cells[1][1].has_x) or (not self._cells[0][1].has_x and self._cells[1][1].has_o):
+                twos += 1
+        return twos
+
+    def lcheck_edge(self, i, j):
+        twos = 0
+        if i == 1 and j == 0:
+            if (self._cells[0][0].has_x and not self._cells[2][0].has_o) or (not self._cells[0][0].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[1][1].has_o) or (not self._cells[1][2].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 1 and j == 2:
+            if (self._cells[0][2].has_x and not self._cells[2][2].has_o) or (not self._cells[0][2].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[1][1].has_o) or (not self._cells[1][0].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 0 and j == 1:
+            if (self._cells[0][0].has_x and not self._cells[0][2].has_o) or (not self._cells[0][0].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[2][1].has_x and not self._cells[1][1].has_o) or (not self._cells[2][1].has_o and self._cells[1][1].has_x):
+                twos += 1
+        if i == 2 and j == 1:
+            if (self._cells[2][0].has_x and not self._cells[2][2].has_o) or (not self._cells[2][0].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[0][1].has_x and not self._cells[1][1].has_o) or (not self._cells[0][1].has_o and self._cells[1][1].has_x):
+                twos += 1
+        return twos
+
+    def wcheck_corner(self, i, j):
+        twos = 0
+        if i == 0 and j == 0:
+            if (self._cells[0][1].has_o and not self._cells[0][2].has_x) or (not self._cells[0][1].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[2][0].has_x) or (not self._cells[1][0].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[2][2].has_x) or (not self._cells[1][1].has_x and self._cells[2][2].has_o):
+                twos += 1
+        if i == 2 and j == 2:
+            if (self._cells[2][1].has_o and not self._cells[2][0].has_x) or (not self._cells[2][1].has_x and self._cells[2][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[0][2].has_x) or (not self._cells[1][2].has_x and self._cells[0][2].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[0][0].has_x) or (not self._cells[1][1].has_x and self._cells[0][0].has_o):
+                twos += 1
+        if i == 0 and j == 2:
+            if (self._cells[0][1].has_o and not self._cells[0][0].has_x) or (not self._cells[0][1].has_x and self._cells[0][0].has_o):
+                twos += 1
+            if (self._cells[1][2].has_o and not self._cells[2][2].has_x) or (not self._cells[1][2].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[2][0].has_x) or (not self._cells[1][1].has_x and self._cells[2][0].has_o):
+                twos += 1
+        if i == 2 and j == 0:
+            if (self._cells[2][1].has_o and not self._cells[2][2].has_x) or (not self._cells[2][1].has_x and self._cells[2][2].has_o):
+                twos += 1
+            if (self._cells[1][0].has_o and not self._cells[0][0].has_x) or (not self._cells[1][0].has_x and self._cells[0][0].has_o):
+                twos += 1
+            if (self._cells[1][1].has_o and not self._cells[0][2].has_x) or (not self._cells[1][1].has_x and self._cells[0][2].has_o):
+                twos += 1
+        return twos
+
+    def lcheck_corner(self, i, j):
+        twos = 0
+        if i == 0 and j == 0:
+            if (self._cells[0][1].has_x and not self._cells[0][2].has_o) or (not self._cells[0][1].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[2][0].has_o) or (not self._cells[1][0].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[2][2].has_o) or (not self._cells[1][1].has_o and self._cells[2][2].has_x):
+                twos += 1
+        if i == 2 and j == 2:
+            if (self._cells[2][1].has_x and not self._cells[2][0].has_o) or (not self._cells[2][1].has_o and self._cells[2][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[0][2].has_o) or (not self._cells[1][2].has_o and self._cells[0][2].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[0][0].has_o) or (not self._cells[1][1].has_o and self._cells[0][0].has_x):
+                twos += 1
+        if i == 0 and j == 2:
+            if (self._cells[0][1].has_x and not self._cells[0][0].has_o) or (not self._cells[0][1].has_o and self._cells[0][0].has_x):
+                twos += 1
+            if (self._cells[1][2].has_x and not self._cells[2][2].has_o) or (not self._cells[1][2].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[2][0].has_o) or (not self._cells[1][1].has_o and self._cells[2][0].has_x):
+                twos += 1
+        if i == 2 and j == 0:
+            if (self._cells[2][1].has_x and not self._cells[2][2].has_o) or (not self._cells[2][1].has_o and self._cells[2][2].has_x):
+                twos += 1
+            if (self._cells[1][0].has_x and not self._cells[0][0].has_o) or (not self._cells[1][0].has_o and self._cells[0][0].has_x):
+                twos += 1
+            if (self._cells[1][1].has_x and not self._cells[0][2].has_o) or (not self._cells[1][1].has_o and self._cells[0][2].has_x):
+                twos += 1
+        return twos
+
+    def wcheck_center(self):
+        twos = 0
+        if (self._cells[0][2].has_o and not self._cells[2][0].has_x) or (self._cells[2][0].has_o and not self._cells[0][2].has_x):
+            twos += 1
+        if (self._cells[2][2].has_o and not self._cells[0][0].has_x) or (self._cells[0][0].has_o and not self._cells[2][2].has_x):
+            twos += 1
+        if (self._cells[0][1].has_o and not self._cells[2][1].has_x) or (self._cells[2][1].has_o and not self._cells[0][1].has_x):
+            twos += 1
+        if (self._cells[1][2].has_o and not self._cells[1][0].has_x) or (self._cells[1][0].has_o and not self._cells[1][2].has_x):
+            twos += 1
+        return twos
+
+    def lcheck_center(self):
+        twos = 0
+        if (self._cells[0][2].has_x and not self._cells[2][0].has_o) or (self._cells[2][0].has_x and not self._cells[0][2].has_o):
+            twos += 1
+        if (self._cells[2][2].has_x and not self._cells[0][0].has_o) or (self._cells[0][0].has_x and not self._cells[2][2].has_o):
+            twos += 1
+        if (self._cells[0][1].has_x and not self._cells[2][1].has_o) or (self._cells[2][1].has_x and not self._cells[0][1].has_o):
+            twos += 1
+        if (self._cells[1][2].has_x and not self._cells[1][0].has_o) or (self._cells[1][0].has_x and not self._cells[1][2].has_o):
+            twos += 1
+        return twos
 
 def tac(button_list, win):
     for button in button_list:
@@ -679,5 +967,4 @@ def make_AI_rboard(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
     rules.destroy()
-    print("unimplemented")
-
+    b1 = AI_RBoard(100, 100, 150, win)

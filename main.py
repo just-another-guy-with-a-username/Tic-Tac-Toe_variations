@@ -85,6 +85,6 @@ def make_AI_rboard(button1, button2, rules, win):
     button1.destroy()
     button2.destroy()
     rules.destroy()
-    print("unimplemented")
+    b1 = AI_RBoard(100, 100, 150, win)
 
 main()
