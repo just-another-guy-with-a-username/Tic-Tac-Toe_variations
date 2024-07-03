@@ -1174,14 +1174,12 @@ class AI_IBoard(IBoard):
                         return [i, j]
         if x_twos == [[False, False, False], [False, False, False], [False, False, False]]:
             available_cells = copy.deepcopy(o_twos)
-        print(available_cells)
         for i in range (0, 3):
             for j in range (0, 3):
                 if available_cells[i][j] == True:
                     return [i, j]
 
     def min_list(self, l):
-        print(l)
         min_list = []
         min = float("inf")
         for c in l:
@@ -1199,7 +1197,6 @@ class AI_IBoard(IBoard):
                 elif num > min:
                     min_col.append(None)
             min_list.append(min_col)
-        print(min_list)
         return min_list
 
     def wcheck_edge(self, i, j):
