@@ -27,4 +27,13 @@ In this complicated and confounding game, you place superposed x's and o's that 
 No AI for this one, have fun playing your friends!
 
 To use this application, run
+
 ```git clone https://github.com/just-another-guy-with-a-username/Tic-Tac-Toe_variations.git```
+
+followed by
+
+```python main.py```
+
+or
+
+```python3 main.py```
