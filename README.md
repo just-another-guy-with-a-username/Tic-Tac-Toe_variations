@@ -26,14 +26,23 @@ While the second player can force win or draw every time, the AI only goes secon
 In this complicated and confounding game, you place superposed x's and o's that sometimes entangle with other x's and o's, eventually leading to their collapse back into regulary positioned particles.
 No AI for this one, have fun playing your friends!
 
-To use this application, run
+## Installation and usage
+
+To intall this application, run
 
 ```git clone https://github.com/just-another-guy-with-a-username/Tic-Tac-Toe_variations.git```
+.
 
-followed by
+To get into the directory, run
+
+```cd tic_oat_two```
+.
+
+To run the application, run
 
 ```python main.py```
 
 or
 
 ```python3 main.py```
+.
