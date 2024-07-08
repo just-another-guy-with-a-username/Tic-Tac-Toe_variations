@@ -1459,7 +1459,15 @@ class QBoard(RBoard):
             while self.loop != []:
                 c_index = self.loop.pop(0)
                 if c_index in self.loop:
+                    self.loop.insert(0, c_index)
                     break
+            self.loop.reverse()
+            while self.loop != []:
+                c_index = self.loop.pop(0)
+                if c_index in self.loop:
+                    self.loop.insert(0, c_index)
+                    break
+        self.loop.reverse()
         for move in self.moves:
             if (move.cell_one == self.loop[0] and move.cell_two == self.loop[1]) or (move.cell_one == self.loop[1] and move.cell_two == self.loop[0]):
                 if self._x_turn == True:
@@ -1592,13 +1600,19 @@ class QBoard(RBoard):
 
     def r_give_move_state(self, move, decider):
         confirmed = [move]
+        if move.cell_one == None:
+            move.final_state = move.cell_two
+        if move.cell_two == None:
+            move.final_state = move.cell_one
         move.final_statef(decider)
         moves = False
         for pmove in self.moves:
             if pmove.cell_one == move.final_state:
+                pmove.cell_one = None
                 confirmed.extend(self.r_give_move_state(pmove, False))
                 moves = True
             if pmove.cell_two == move.final_state:
+                pmove.cell_two = None
                 confirmed.extend(self.r_give_move_state(pmove, True))
                 moves = True
         return confirmed
