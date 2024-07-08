@@ -26,7 +26,7 @@ While the second player can force win or draw every time, the AI only goes secon
 In this complicated and confounding game, you place superposed x's and o's that sometimes entangle with other x's and o's, eventually leading to their collapse back into regulary positioned particles.
 No AI for this one, have fun playing your friends!
 
-## Installation and usage
+# Installation and usage
 
 To intall this application, run
 
