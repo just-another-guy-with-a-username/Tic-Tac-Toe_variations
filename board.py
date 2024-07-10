@@ -1835,3 +1835,4 @@ def make_AI_iboard(button1, button2, rules, win):
     button2.destroy()
     rules.destroy()
     b1 = AI_IBoard(100, 100, 150, win)
+
