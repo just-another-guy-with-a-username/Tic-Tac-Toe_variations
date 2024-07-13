@@ -1381,20 +1381,16 @@ class QBoard(RBoard):
         cell = self._cells[i][j]
         if self._x_turn:
             if self.part == 1:
-                if len(self._cells[i][j].connections) < 8:
-                    self.x_move1(cell, i, j)
+                self.x_move1(cell, i, j)
             elif self.part == 2:
                 if not self.i == i or not self.j == j:
-                    if len(self._cells[i][j].connections) < 8:
-                        self.x_move2(cell, i, j, self.i, self.j)
+                    self.x_move2(cell, i, j, self.i, self.j)
         else:
             if self.part == 1:
-                if len(self._cells[i][j].connections) < 8:
-                    self.o_move1(cell, i, j)
+                self.o_move1(cell, i, j)
             elif self.part == 2:
                 if not self.i == i or not self.j == j:
-                    if len(self._cells[i][j].connections) < 8:
-                        self.o_move2(cell, i, j, self.i, self.j)
+                    self.o_move2(cell, i, j, self.i, self.j)
 
     def x_move1(self, cell, i, j):
         if not cell.has_o and not cell.has_x:
