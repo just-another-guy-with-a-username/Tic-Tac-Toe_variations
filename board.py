@@ -1,3 +1,4 @@
+import sys
 import copy
 import tkinter as tk
 from cell import Cell, QCell
@@ -168,10 +169,6 @@ class Board():
          return win_count
 
     def end_buttons(self):
-        self.close = tk.Button(bg="#00C000", activebackground="#009000", borderwidth=0, text="Close",
-                               anchor="center", command=self.end_program)
-        self.close.place(width=self._win._width/3, height=self._win._height/30,
-                         x=self._win._width/3, y=(self._win._height/2)-(self._win._height/15))
         self.replay = tk.Button(bg="#00C000", activebackground="#009000", borderwidth=0, text="Play Again",
                                 anchor="center", command=self.reset_board)
         self.replay.place(width=self._win._width/3, height=self._win._height/30,
@@ -181,11 +178,7 @@ class Board():
         self.menu.place(width=self._win._width/3, height=self._win._height/30,
                           x=self._win._width/3, y=(self._win._height/2)+(self._win._height/45))
 
-    def end_program(self):
-        self._win.get_root().destroy()
-
     def reset_board(self):
-        self.close.destroy()
         self.replay.destroy()
         self.menu.destroy()
         for col in self._buttons:
@@ -203,7 +196,6 @@ class Board():
         self.display_scores()
 
     def main_menu(self):
-        self.close.destroy()
         self.replay.destroy()
         self.menu.destroy()
         self._vertical_score_teller.destroy()
@@ -428,7 +420,6 @@ class RBoard(Board):
         self.start = "x"
         self._x_score = 0
         self._o_score = 0
-        self.close = None
         self.replay = None
         self.menu = None
         self.win_lines = []
@@ -559,7 +550,6 @@ class RBoard(Board):
         return win_count
 
     def reset_board(self):
-        self.close.destroy()
         self.replay.destroy()
         self.menu.destroy()
         for col in self._buttons:
@@ -579,7 +569,6 @@ class RBoard(Board):
             self.start = "o"
 
     def main_menu(self):
-        self.close.destroy()
         self.replay.destroy()
         self.menu.destroy()
         self._x_score_teller.destroy()
